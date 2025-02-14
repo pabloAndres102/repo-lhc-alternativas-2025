@@ -9,7 +9,7 @@ $data = (array)$fbOptions->data;
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-    CURLOPT_URL => 'https://graph.facebook.com/v17.0/' . $data['whatsapp_business_account_phone_number'] . '/whatsapp_commerce_settings',
+    CURLOPT_URL => 'https://graph.facebook.com/v22.0/' . $data['whatsapp_business_account_phone_number'] . '/whatsapp_commerce_settings',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_ENCODING => '',
     CURLOPT_MAXREDIRS => 10,
@@ -29,12 +29,13 @@ $jsonResponse = json_decode($response, true);
 $is_cart_enabled = $jsonResponse['data'][0]['is_cart_enabled'];
 $is_catalog_visible =  $jsonResponse['data'][0]['is_catalog_visible'];
 
-if ($data['business_phone_id']) {
+
+if ($data['whatsapp_business_account_phone_number']) {
     if ($is_cart_enabled == true) {
-        $url = 'https://graph.facebook.com/v17.0/' . $data['business_phone_id'] . '/whatsapp_commerce_settings?is_cart_enabled=false&is_catalog_visible=false';
+        $url = 'https://graph.facebook.com/v22.0/' . $data['whatsapp_business_account_phone_number'] . '/whatsapp_commerce_settings?is_cart_enabled=false&is_catalog_visible=false';
         $status_catalog = 'Catalogo activado';
     } else {
-        $url = 'https://graph.facebook.com/v17.0/' . $data['business_phone_id'] . '/whatsapp_commerce_settings?is_cart_enabled=true&is_catalog_visible=true';
+        $url = 'https://graph.facebook.com/v22.0/' . $data['whatsapp_business_account_phone_number'] . '/whatsapp_commerce_settings?is_cart_enabled=true&is_catalog_visible=true';
         $status_catalog = 'Catalogo desactivado';
     }
 } else {
@@ -69,6 +70,7 @@ if (isset($_POST['action'])) {
 
     curl_close($curl);
     header('Location: ' . erLhcoreClassDesign::baseurl('fbwhatsapp/catalog_products'));
+
 }
 $products = erLhcoreClassModelCatalogProducts::getList();
 $tpl->set('products', $products);

@@ -687,11 +687,11 @@
 
 </form>
 
-<script>
+<!-- <script>
     $(function() {
         $('#id_timefrom,#id_timeto').fdatepicker({
             format: 'yyyy-mm-dd'
         });
         $('.btn-block-department').makeDropdown();
     });
-</script>
+</script> DATEPICKER REVIEW IN AUDIT  -->

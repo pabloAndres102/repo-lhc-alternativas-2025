@@ -18,7 +18,6 @@ if (isset($_GET['phone'])) {
 }
 
 
-
 if (is_numeric($Params['user_parameters_unordered']['business_account_id']) && $Params['user_parameters_unordered']['business_account_id'] > 0) {
     $account = \LiveHelperChatExtension\fbmessenger\providers\erLhcoreClassModelMessageFBWhatsAppAccount::fetch($Params['user_parameters_unordered']['business_account_id']);
     $instance->setAccessToken($account->access_token);
@@ -43,7 +42,7 @@ if (ezcInputForm::hasPostData()) {
     if (!isset($_POST['csfr_token']) || !$currentUser->validateCSFRToken($_POST['csfr_token'])) {
         erLhcoreClassModule::redirect('fbwhatsapp/simple_send');
         exit;
-    }
+    } 
 
     $definition = array(
         'phone' => new ezcInputFormDefinitionElement(
@@ -245,8 +244,17 @@ if (ezcInputForm::hasPostData()) {
         $Errors[] = erTranslationClassLhTranslation::getInstance()->getTranslation('module/fbmessenger', 'Please choose a template!');
     }
 
+    $status_contact = LiveHelperChatExtension\fbmessenger\providers\erLhcoreClassModelMessageFBWhatsAppContact::getList(['filter' => ['phone' => $item->phone]]);
+    foreach ($status_contact as $contact) {
+        if($contact->disabled > 0){
+            $Errors[] = erTranslationClassLhTranslation::getInstance()->getTranslation('module/fbmessenger', 'This contact is deactivated');
+        }
+        
+    }
 
 
+
+ 
     if (isset($_POST['nombre_archivo1'])) {
         $item->message_variables_array['nombre_archivo1'] =  $_POST['nombre_archivo1'];
     }
@@ -299,9 +307,9 @@ if (ezcInputForm::hasPostData()) {
                 }
 
                 $curl = curl_init();
-
+                $phone_numbers = explode(',', $data['whatsapp_business_account_phone_number']);
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://graph.facebook.com/v20.0/' . $data['business_phone_id'] . '/media',
+                    CURLOPT_URL => 'https://graph.facebook.com/v20.0/' . $phone_numbers[0]. '/media',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -330,6 +338,7 @@ if (ezcInputForm::hasPostData()) {
             // print_r('<mark>');
             // print_r($item->message_variables_array);
             // print_r('</mark>');
+            // print_r($data['whatsapp_business_account_phone_number']);
         }
     }
 
@@ -381,9 +390,9 @@ if (ezcInputForm::hasPostData()) {
                 }
 
                 $curl = curl_init();
-
+$phone_numbers = explode(',', $data['whatsapp_business_account_phone_number']);
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://graph.facebook.com/v20.0/' . $data['business_phone_id'] . '/media',
+                    CURLOPT_URL => 'https://graph.facebook.com/v20.0/' . $phone_numbers[0] . '/media',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -418,6 +427,10 @@ if (ezcInputForm::hasPostData()) {
         try {
 
             $item->user_id = $currentUser->getUserID();
+
+
+            
+
 
             if ($item->status != \LiveHelperChatExtension\fbmessenger\providers\erLhcoreClassModelMessageFBWhatsAppMessage::STATUS_SCHEDULED) {
                 LiveHelperChatExtension\fbmessenger\providers\FBMessengerWhatsAppLiveHelperChat::getInstance()->sendTemplate($item, $templates, $phones);
@@ -457,7 +470,7 @@ if (ezcInputForm::hasPostData()) {
                 $campaignRecipient->saveThis();
                 // print_r($campaignRecipient);
             }
-
+            
             $tpl->set('updated', true);
             $fbcommand = json_encode([
                 'template_name' => $item->template,
@@ -478,6 +491,12 @@ if (isset($messageVariablesOriginal)) {
     $item->message_variables = json_encode($messageVariablesOriginal);
 }
 
+
+
+
+
+
+
 $tpl->setArray([
     'send' => $item,
     'templates' => $templates,
@@ -485,5 +504,6 @@ $tpl->setArray([
 ]);
 
 $Result['content'] = $tpl->fetch();
+$Result['additional_footer_js'] = '<script type="text/javascript" src="' . erLhcoreClassDesign::designJS('js/extension.fbwhatsapp2.js') . '"></script>';
 echo $tpl->fetch();
 exit;
